@@ -16,7 +16,7 @@ class WavyProgressPainter extends CustomPainter {
 
     // Background wave (gray)
     final Paint backgroundPaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;

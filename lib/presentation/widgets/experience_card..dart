@@ -67,31 +67,31 @@ class ExperienceCard extends StatelessWidget {
               ),
             ),
 
-            // Selection checkmark
-            if (selected)
-              Positioned(
-                top: 2.w,
-                right: 2.w,
-                child: Container(
-                  padding: EdgeInsets.all(2.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.check,
-                    size: 14.sp,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
+            // // Selection checkmark
+            // if (selected)
+            //   Positioned(
+            //     top: 2.w,
+            //     right: 2.w,
+            //     child: Container(
+            //       padding: EdgeInsets.all(2.w),
+            //       decoration: BoxDecoration(
+            //         color: Colors.white,
+            //         shape: BoxShape.circle,
+            //         boxShadow: [
+            //           BoxShadow(
+            //             color: Colors.black26,
+            //             blurRadius: 4,
+            //             offset: const Offset(0, 2),
+            //           ),
+            //         ],
+            //       ),
+            //       // child: Icon(
+            //       //   Icons.check,
+            //       //   size: 14.sp,
+            //       //   color: Theme.of(context).primaryColor,
+            //       // ),
+            //     ),
+            //   ),
           ],
         ),
       ),

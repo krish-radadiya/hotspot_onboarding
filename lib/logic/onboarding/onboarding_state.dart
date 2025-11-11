@@ -1,37 +1,44 @@
-// import 'dart:io';
-// import 'package:equatable/equatable.dart';
-//
-// class OnboardingState extends Equatable {
-//   final String answer;
-//   final File? audioFile;
-//   final File? videoFile;
-//   final bool isRecordingAudio;
-//   final bool isRecordingVideo;
-//
-//   const OnboardingState({
-//     this.answer = '',
-//     this.audioFile,
-//     this.videoFile,
-//     this.isRecordingAudio = false,
-//     this.isRecordingVideo = false,
-//   });
-//
-//   OnboardingState copyWith({
-//     String? answer,
-//     File? audioFile,
-//     File? videoFile,
-//     bool? isRecordingAudio,
-//     bool? isRecordingVideo,
-//   }) {
-//     return OnboardingState(
-//       answer: answer ?? this.answer,
-//       audioFile: audioFile,
-//       videoFile: videoFile,
-//       isRecordingAudio: isRecordingAudio ?? this.isRecordingAudio,
-//       isRecordingVideo: isRecordingVideo ?? this.isRecordingVideo,
-//     );
-//   }
-//
-//   @override
-//   List<Object?> get props => [answer, audioFile?.path, videoFile?.path, isRecordingAudio, isRecordingVideo];
-// }
+import 'package:equatable/equatable.dart';
+
+class OnboardingState extends Equatable {
+  final String text;
+  final bool isRecordingAudio;
+  final String? audioPath;
+  final bool isPlayingAudio;
+  final bool hasAudio;
+  final bool hasVideo;
+  final String? videoPath;
+
+  const OnboardingState({
+    this.text = '',
+    this.isRecordingAudio = false,
+    this.audioPath,
+    this.isPlayingAudio = false,
+    this.hasAudio = false,
+    this.hasVideo = false,
+    this.videoPath,
+  });
+
+  OnboardingState copyWith({
+    String? text,
+    bool? isRecordingAudio,
+    String? audioPath,
+    bool? isPlayingAudio,
+    bool? hasAudio,
+    bool? hasVideo,
+    String? videoPath,
+  }) {
+    return OnboardingState(
+      text: text ?? this.text,
+      isRecordingAudio: isRecordingAudio ?? this.isRecordingAudio,
+      audioPath: audioPath ?? this.audioPath,
+      isPlayingAudio: isPlayingAudio ?? this.isPlayingAudio,
+      hasAudio: hasAudio ?? this.hasAudio,
+      hasVideo: hasVideo ?? this.hasVideo,
+      videoPath: videoPath ?? this.videoPath,
+    );
+  }
+
+  @override
+  List<Object?> get props => [text, isRecordingAudio, audioPath, isPlayingAudio, hasAudio, hasVideo, videoPath];
+}
