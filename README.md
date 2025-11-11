@@ -28,7 +28,9 @@ This project implements the Flutter onboarding questionnaire for Hotspot Hosts.
 3. Run on emulator/device
 
 
-https://github.com/user-attachments/assets/4bcc1c1c-c585-4149-aa3d-850b63b3dfaa
+
+https://github.com/user-attachments/assets/dead15d3-5eff-488c-9348-775dd79a5d50
+
 
 
 <img src="https://github.com/user-attachments/assets/2b34174b-9124-4d4c-a917-516282d0f12f" width="250">
