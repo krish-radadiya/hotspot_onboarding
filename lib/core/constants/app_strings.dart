@@ -1,7 +1,7 @@
 /// ✅ Centralized app strings
 class AppStrings {
   // ───────── Common ─────────
-  static const String next = 'Next 🔊';
+  static const String next = 'Next';
   static const String retry = 'Retry';
   static const String failedToLoad = 'Failed to load experiences';
   static const String close = 'Close';

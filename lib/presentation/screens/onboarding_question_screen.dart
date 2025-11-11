@@ -1,405 +1,10 @@
-// import 'dart:async';
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:hotspot_onboarding/core/constants/app_strings.dart';
-// import 'package:hotspot_onboarding/core/constants/app_text_styles.dart';
-// import 'package:hotspot_onboarding/logic/onboarding/onboarding_bloc.dart';
-// import 'package:hotspot_onboarding/logic/onboarding/onboarding_event.dart';
-// import 'package:hotspot_onboarding/logic/onboarding/onboarding_state.dart';
-// import 'package:hotspot_onboarding/presentation/widgets/WavyProgressPainter.dart';
-// import 'package:video_player/video_player.dart';
-// import 'package:sizer/sizer.dart';
-//
-// class OnboardingQuestionScreen extends StatefulWidget {
-//   const OnboardingQuestionScreen({super.key});
-//
-//   @override
-//   State<OnboardingQuestionScreen> createState() => _OnboardingQuestionScreenState();
-// }
-//
-// class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
-//   final TextEditingController _controller = TextEditingController();
-//   VideoPlayerController? _videoPlayerController;
-//   final ScrollController _scrollController = ScrollController();
-//   double _scrollProgress = 0.0;
-//
-//   Timer? _recordTimer;
-//   int _recordSeconds = 0;
-//   int _finalDuration = 0;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _scrollController.addListener(_updateScrollProgress);
-//   }
-//
-//   void _updateScrollProgress() {
-//     if (!_scrollController.hasClients || !_scrollController.position.hasContentDimensions) return;
-//     final maxScroll = _scrollController.position.maxScrollExtent;
-//     final current = _scrollController.offset;
-//     setState(() {
-//       _scrollProgress = (maxScroll == 0) ? 0.0 : (current / maxScroll).clamp(0.0, 1.0);
-//     });
-//   }
-//
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     _videoPlayerController?.dispose();
-//     _recordTimer?.cancel();
-//     super.dispose();
-//   }
-//
-//   String _formatTime(int seconds) {
-//     final m = (seconds ~/ 60).toString().padLeft(2, '0');
-//     final s = (seconds % 60).toString().padLeft(2, '0');
-//     return "$m:$s";
-//   }
-//
-//   Widget _waveform(bool animate) {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//       children: List.generate(22, (i) {
-//         final height = animate ? (8 + (DateTime.now().millisecond % (10 + i % 4))).toDouble() : (8 + (i % 5) * 4).toDouble();
-//         return AnimatedContainer(
-//           duration: const Duration(milliseconds: 150),
-//           width: 3,
-//           height: height,
-//           decoration: BoxDecoration(color: Colors.white.withOpacity(0.85), borderRadius: BorderRadius.circular(2)),
-//         );
-//       }),
-//     );
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color(0xFF0D0D0D),
-//       resizeToAvoidBottomInset: true,
-//       body: SafeArea(
-//         child: Padding(
-//           padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
-//           child: BlocBuilder<OnboardingBloc, OnboardingState>(
-//             builder: (context, state) {
-//               if (state.hasVideo && state.videoPath != null && _videoPlayerController == null) {
-//                 _videoPlayerController = VideoPlayerController.file(File(state.videoPath!))..initialize().then((_) => setState(() {}));
-//               }
-//
-//               // 🎙 Manage live recording timer
-//               if (state.isRecordingAudio && _recordTimer == null) {
-//                 _recordSeconds = 0;
-//                 _finalDuration = 0;
-//                 _recordTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-//                   setState(() => _recordSeconds++);
-//                 });
-//               } else if (!state.isRecordingAudio && _recordTimer != null) {
-//                 _recordTimer?.cancel();
-//                 _recordTimer = null;
-//                 _finalDuration = _recordSeconds;
-//               }
-//
-//               return Column(
-//                 children: [
-//                   // ==== Scrollable Content ====
-//                   Expanded(
-//                     child: SingleChildScrollView(
-//                       physics: const ClampingScrollPhysics(),
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           // ==== App Bar ====
-//                           Row(
-//                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                             children: [
-//                               IconButton(
-//                                 onPressed: () => Navigator.pop(context),
-//                                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-//                                 tooltip: AppStrings.back,
-//                               ),
-//                               Expanded(
-//                                 child: Padding(
-//                                   padding: EdgeInsets.symmetric(horizontal: 4.w),
-//                                   child: CustomPaint(
-//                                     painter: WavyProgressPainter(progress: _scrollProgress),
-//                                     size: const Size(double.infinity, 8),
-//                                   ),
-//                                 ),
-//                               ),
-//                               IconButton(
-//                                 onPressed: () => Navigator.pop(context),
-//                                 icon: const Icon(Icons.close, color: Colors.white),
-//                                 tooltip: AppStrings.close,
-//                               ),
-//                             ],
-//                           ),
-//                           SizedBox(height: 12.h),
-//
-//                           // ==== Text Section ====
-//                           Text(
-//                             AppStrings.step02,
-//                             style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10.sp),
-//                           ),
-//                           SizedBox(height: 1.h),
-//                           Text(AppStrings.questionWhyHost, style: AppTextStyles.bodyMedium),
-//                           SizedBox(height: 1.h),
-//                           Text(AppStrings.questionIntent, style: AppTextStyles.bodyRegularGrey),
-//                           SizedBox(height: 2.h),
-//
-//                           // ==== Text Field ====
-//                           Container(
-//                             decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12)),
-//                             padding: EdgeInsets.symmetric(horizontal: 3.w),
-//                             child: TextField(
-//                               controller: _controller,
-//                               minLines: 10,
-//                               maxLines: 18,
-//                               onChanged: (val) => context.read<OnboardingBloc>().add(UpdateTextAnswer(val)),
-//                               style: TextStyle(color: Colors.white, fontSize: 11.sp),
-//                               decoration: InputDecoration(
-//                                 hintText: AppStrings.hintStartTyping,
-//                                 hintStyle: TextStyle(color: Colors.white30, fontSize: 11.sp),
-//                                 border: InputBorder.none,
-//                               ),
-//                             ),
-//                           ),
-//                           SizedBox(height: 2.h),
-//
-//                           // ==== Recording UI ====
-//                           if (state.isRecordingAudio)
-//                             Container(
-//                               margin: EdgeInsets.only(bottom: 2.h),
-//                               decoration: BoxDecoration(color: const Color(0xFF151515), borderRadius: BorderRadius.circular(12)),
-//                               padding: EdgeInsets.all(3.w),
-//                               child: Row(
-//                                 children: [
-//                                   Container(
-//                                     width: 44,
-//                                     height: 44,
-//                                     decoration: const BoxDecoration(color: Color(0xFF8B9BFF), shape: BoxShape.circle),
-//                                     child: const Icon(Icons.mic, color: Colors.white, size: 22),
-//                                   ),
-//                                   SizedBox(width: 3.w),
-//                                   Expanded(
-//                                     child: Column(
-//                                       crossAxisAlignment: CrossAxisAlignment.start,
-//                                       children: [
-//                                         Text(
-//                                           AppStrings.recordingAudio,
-//                                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp),
-//                                         ),
-//                                         SizedBox(height: 0.8.h),
-//                                         _waveform(true),
-//                                       ],
-//                                     ),
-//                                   ),
-//                                   Text(
-//                                     _formatTime(_recordSeconds),
-//                                     style: TextStyle(color: Colors.white70, fontSize: 11.sp, fontWeight: FontWeight.w500),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//
-//                           // ==== Recorded Audio ====
-//                           if (!state.isRecordingAudio && state.hasAudio && state.audioPath != null)
-//                             Container(
-//                               margin: EdgeInsets.only(bottom: 2.h),
-//                               decoration: BoxDecoration(color: const Color(0xFF151515), borderRadius: BorderRadius.circular(12)),
-//                               padding: EdgeInsets.all(3.w),
-//                               child: Row(
-//                                 children: [
-//                                   GestureDetector(
-//                                     onTap: () => context.read<OnboardingBloc>().add(PlayAudio()),
-//                                     child: Container(
-//                                       width: 44,
-//                                       height: 44,
-//                                       decoration: BoxDecoration(
-//                                         color: state.isPlayingAudio ? Colors.white : const Color(0xFF8B9BFF),
-//                                         shape: BoxShape.circle,
-//                                       ),
-//                                       child: Icon(
-//                                         state.isPlayingAudio ? Icons.stop : Icons.play_arrow,
-//                                         color: state.isPlayingAudio ? Colors.black : Colors.white,
-//                                         size: 24,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                   SizedBox(width: 3.w),
-//                                   Expanded(
-//                                     child: Column(
-//                                       crossAxisAlignment: CrossAxisAlignment.start,
-//                                       children: [
-//                                         Text(
-//                                           "${AppStrings.audioRecorded} • ${_formatTime(_finalDuration)}",
-//                                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp),
-//                                         ),
-//                                         SizedBox(height: 0.8.h),
-//                                         _waveform(false),
-//                                       ],
-//                                     ),
-//                                   ),
-//                                   IconButton(
-//                                     onPressed: () => context.read<OnboardingBloc>().add(DeleteAudio()),
-//                                     icon: const Icon(Icons.delete_outline, color: Colors.white),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//
-//                   // ==== Video Recorded ====
-//                   if (state.hasVideo && _videoPlayerController != null && _videoPlayerController!.value.isInitialized)
-//                     StatefulBuilder(
-//                       builder: (context, setInnerState) {
-//                         Timer.periodic(const Duration(seconds: 1), (t) {
-//                           if (!mounted) {
-//                             t.cancel();
-//                             return;
-//                           }
-//                           if (_videoPlayerController!.value.isPlaying) {
-//                             setInnerState(() {});
-//                           } else {
-//                             t.cancel();
-//                           }
-//                         });
-//
-//                         final duration = _videoPlayerController!.value.duration.inSeconds;
-//                         final position = _videoPlayerController!.value.position.inSeconds;
-//                         final current = position > duration ? duration : position;
-//
-//                         return Container(
-//                           margin: EdgeInsets.only(bottom: 2.h),
-//                           decoration: BoxDecoration(color: const Color(0xFF151515), borderRadius: BorderRadius.circular(12)),
-//                           padding: EdgeInsets.all(3.w),
-//                           child: Row(
-//                             crossAxisAlignment: CrossAxisAlignment.center,
-//                             children: [
-//                               GestureDetector(
-//                                 onTap: () {
-//                                   if (_videoPlayerController!.value.isPlaying) {
-//                                     _videoPlayerController!.pause();
-//                                   } else {
-//                                     _videoPlayerController!.play();
-//                                   }
-//                                   setInnerState(() {});
-//                                 },
-//                                 child: SizedBox(
-//                                   width: 60,
-//                                   height: 60,
-//                                   child: Stack(
-//                                     alignment: Alignment.center,
-//                                     children: [
-//                                       ClipRRect(
-//                                         borderRadius: BorderRadius.circular(8),
-//                                         child: AspectRatio(
-//                                           aspectRatio: _videoPlayerController!.value.aspectRatio,
-//                                           child: VideoPlayer(_videoPlayerController!),
-//                                         ),
-//                                       ),
-//                                       if (!_videoPlayerController!.value.isPlaying) const Icon(Icons.play_circle_fill, color: Colors.white, size: 30),
-//                                     ],
-//                                   ),
-//                                 ),
-//                               ),
-//                               SizedBox(width: 3.w),
-//                               Expanded(
-//                                 child: Column(
-//                                   crossAxisAlignment: CrossAxisAlignment.start,
-//                                   children: [
-//                                     Text(
-//                                       AppStrings.videoRecorded,
-//                                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp),
-//                                     ),
-//                                     SizedBox(height: 0.8.h),
-//                                     Text(
-//                                       "${_formatTime(current)} / ${_formatTime(duration)}",
-//                                       style: TextStyle(color: Colors.white70, fontSize: 10.sp),
-//                                     ),
-//                                   ],
-//                                 ),
-//                               ),
-//                               IconButton(
-//                                 onPressed: () {
-//                                   context.read<OnboardingBloc>().add(DeleteVideo());
-//                                   _videoPlayerController?.dispose();
-//                                   _videoPlayerController = null;
-//                                 },
-//                                 icon: const Icon(Icons.delete_outline, color: Colors.white),
-//                               ),
-//                             ],
-//                           ),
-//                         );
-//                       },
-//                     ),
-//
-//                   // ==== Bottom Buttons ====
-//                   Padding(
-//                     padding: EdgeInsets.only(top: 1.h),
-//                     child: Row(
-//                       children: [
-//                         if (!state.hasVideo)
-//                           GestureDetector(
-//                             onTap: () {
-//                               if (state.isRecordingAudio) {
-//                                 context.read<OnboardingBloc>().add(StopAudioRecording());
-//                               } else {
-//                                 context.read<OnboardingBloc>().add(StartAudioRecording());
-//                               }
-//                             },
-//                             child: Container(
-//                               width: 14.w,
-//                               height: 6.h,
-//                               decoration: BoxDecoration(color: const Color(0xFF1B1B1B), borderRadius: BorderRadius.circular(10)),
-//                               child: Icon(state.isRecordingAudio ? Icons.stop : Icons.mic_none, color: Colors.white),
-//                             ),
-//                           ),
-//                         SizedBox(width: 3.w),
-//                         if (!state.hasAudio)
-//                           GestureDetector(
-//                             onTap: () => context.read<OnboardingBloc>().add(StartVideoRecording()),
-//                             child: Container(
-//                               width: 14.w,
-//                               height: 6.h,
-//                               decoration: BoxDecoration(color: const Color(0xFF1B1B1B), borderRadius: BorderRadius.circular(10)),
-//                               child: const Icon(Icons.videocam_outlined, color: Colors.white),
-//                             ),
-//                           ),
-//                         const Spacer(),
-//                         SizedBox(
-//                           width: 55.w,
-//                           height: 6.2.h,
-//                           child: ElevatedButton(
-//                             style: ElevatedButton.styleFrom(
-//                               backgroundColor: Colors.white.withOpacity(0.15),
-//                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//                             ),
-//                             onPressed: () {},
-//                             child: Text(AppStrings.next, style: AppTextStyles.bodyBold),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ],
-//               );
-//             },
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:hotspot_onboarding/core/constants/app_colors.dart';
 import 'package:hotspot_onboarding/core/constants/app_strings.dart';
 import 'package:hotspot_onboarding/core/constants/app_text_styles.dart';
 import 'package:hotspot_onboarding/logic/onboarding/onboarding_bloc.dart';
@@ -459,22 +64,6 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
     return "$m:$s";
   }
 
-  Widget _waveform(bool animate) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(20, (i) {
-        final height =
-        animate ? (8 + (DateTime.now().millisecond % (10 + i % 4))).toDouble() : (8 + (i % 5) * 4).toDouble();
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 3,
-          height: height,
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.85), borderRadius: BorderRadius.circular(2)),
-        );
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
@@ -486,8 +75,7 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
         builder: (context, state) {
           // initialize video
           if (state.hasVideo && state.videoPath != null && _videoPlayerController == null) {
-            _videoPlayerController = VideoPlayerController.file(File(state.videoPath!))
-              ..initialize().then((_) => setState(() {}));
+            _videoPlayerController = VideoPlayerController.file(File(state.videoPath!))..initialize().then((_) => setState(() {}));
           }
 
           // recording timer
@@ -510,11 +98,7 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
                 child: SingleChildScrollView(
                   controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.only(
-                    left: 5.w,
-                    right: 5.w,
-                    bottom: bottomInset + 90,
-                  ),
+                  padding: EdgeInsets.only(left: 5.w, right: 5.w, bottom: bottomInset + 90),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -548,20 +132,17 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
                       // ==== TEXT HEADINGS ====
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 250),
-                        style: TextStyle(
-                          fontSize: _keyboardVisible ? 9.sp : 11.sp,
-                          color: Colors.white.withOpacity(0.3),
-                        ),
+                        style: TextStyle(fontSize: _keyboardVisible ? 9.sp : 11.sp, color: Colors.white.withOpacity(0.3)),
                         child: Text(AppStrings.step02),
                       ),
                       SizedBox(height: 0.5.h),
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 250),
-                        style: _keyboardVisible ? AppTextStyles.bodySmall : AppTextStyles.bodyMedium,
+                        style: _keyboardVisible ? AppTextStyles.bodyRegular : AppTextStyles.bodyMedium,
                         child: Text(AppStrings.questionWhyHost),
                       ),
                       AnimatedOpacity(
-                        opacity: _keyboardVisible ? 0.0 : 1.0,
+                        opacity: _keyboardVisible ? 1.0 : 1.0,
                         duration: const Duration(milliseconds: 250),
                         child: Padding(
                           padding: EdgeInsets.only(top: 0.6.h),
@@ -574,10 +155,7 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeOut,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A1A),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12)),
                         padding: EdgeInsets.symmetric(horizontal: 3.w),
                         constraints: BoxConstraints(
                           minHeight: _keyboardVisible ? 12.h : 30.h, // 📏 slightly taller when closed
@@ -600,10 +178,8 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
 
                       // ==== AUDIO / VIDEO UI ====
                       if (state.isRecordingAudio) _buildAudioRecording(),
-                      if (!state.isRecordingAudio && state.hasAudio && state.audioPath != null)
-                        _buildAudioRecorded(state),
-                      if (state.hasVideo && _videoPlayerController != null && _videoPlayerController!.value.isInitialized)
-                        _buildVideoRecorded(),
+                      if (!state.isRecordingAudio && state.hasAudio && state.audioPath != null) _buildAudioRecorded(state),
+                      if (state.hasVideo && _videoPlayerController != null && _videoPlayerController!.value.isInitialized) _buildVideoRecorded(),
                     ],
                   ),
                 ),
@@ -613,72 +189,139 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: _keyboardVisible ? bottomInset : 0.h, // 📏 when closed: small gap from bottom
+                bottom: _keyboardVisible ? bottomInset : 0.h,
                 child: Container(
-                  color: Colors.black.withOpacity(0.85),
-                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.1.h),
+                  color: AppColors.base1.withOpacity(0.85),
+                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.6.h),
                   child: SafeArea(
                     top: false,
-                    child: hasMedia
-                        ? SizedBox(
-                      width: double.infinity,
-                      height: 6.5.h,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.15),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: () {},
-                        child: Text(AppStrings.next, style: AppTextStyles.bodyBold),
-                      ),
-                    )
-                        : Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (state.isRecordingAudio) {
-                              context.read<OnboardingBloc>().add(StopAudioRecording());
-                            } else {
-                              context.read<OnboardingBloc>().add(StartAudioRecording());
-                            }
-                          },
-                          child: Container(
-                            width: 14.w,
-                            height: 6.h,
+                    child: Builder(
+                      builder: (context) {
+                        final hasMedia = state.hasAudio || state.hasVideo; // ✅ Check if audio/video recorded
+
+                        // ===== SHOW ONLY NEXT BUTTON WHEN MEDIA EXISTS =====
+                        if (hasMedia) {
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: double.infinity,
+                            height: 6.5.h,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1B1B1B),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
                             ),
-                            child: Icon(state.isRecordingAudio ? Icons.stop : Icons.mic_none, color: Colors.white),
-                          ),
-                        ),
-                        SizedBox(width: 3.w),
-                        GestureDetector(
-                          onTap: () => context.read<OnboardingBloc>().add(StartVideoRecording()),
-                          child: Container(
-                            width: 14.w,
-                            height: 6.h,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1B1B1B),
-                              borderRadius: BorderRadius.circular(10),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () {
+                                // NEXT ACTION HERE
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    AppStrings.next,
+                                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColors.text1.withOpacity(0.9)),
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: AppColors.text1.withOpacity(0.9)),
+                                ],
+                              ),
                             ),
-                            child: const Icon(Icons.videocam_outlined, color: Colors.white),
-                          ),
-                        ),
-                        // const Spacer(),
-                        SizedBox(
-                          width: 55.w,
-                          height: 6.2.h,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.15),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          );
+                        }
+
+                        // ===== DEFAULT: AUDIO + VIDEO + NEXT BUTTON =====
+                        return Row(
+                          children: [
+                            // 🎙 AUDIO BUTTON
+                            GestureDetector(
+                              onTap: () {
+                                if (state.isRecordingAudio) {
+                                  context.read<OnboardingBloc>().add(StopAudioRecording());
+                                } else {
+                                  context.read<OnboardingBloc>().add(StartAudioRecording());
+                                }
+                              },
+                              child: Container(
+                                width: 14.w,
+                                height: 6.h,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: state.isRecordingAudio
+                                      ? const LinearGradient(
+                                          colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        )
+                                      : null,
+                                  color: state.isRecordingAudio ? null : AppColors.neutralDark,
+                                ),
+                                child: Icon(state.isRecordingAudio ? Icons.stop : Icons.mic_none, color: AppColors.text1.withOpacity(0.9)),
+                              ),
                             ),
-                            onPressed: () {},
-                            child: Text(AppStrings.next, style: AppTextStyles.bodyBold),
-                          ),
-                        ),
-                      ],
+
+                            SizedBox(width: 3.w),
+
+                            // 🎥 VIDEO BUTTON
+                            GestureDetector(
+                              onTap: () => context.read<OnboardingBloc>().add(StartVideoRecording()),
+                              child: Container(
+                                width: 14.w,
+                                height: 6.h,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: state.hasVideo
+                                      ? const LinearGradient(
+                                          colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                        )
+                                      : null,
+                                  color: state.hasVideo ? null : AppColors.neutralDark,
+                                ),
+                                child: const Icon(Icons.videocam_outlined, color: AppColors.text1),
+                              ),
+                            ),
+
+                            SizedBox(width: 3.w),
+
+                            // 🟣 NEXT BUTTON (inactive initially)
+                            Expanded(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                height: 6.2.h,
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: AppColors.neutralDark.withOpacity(0.8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: null, // inactive until media recorded
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        AppStrings.next,
+                                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColors.text1.withOpacity(0.4)),
+                                      ),
+                                      SizedBox(width: 2.w),
+                                      Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: AppColors.text1.withOpacity(0.4)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -687,6 +330,44 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
           );
         },
       ),
+    );
+  }
+
+  // ==== WAVEFORM ====
+  Widget _waveform(bool animate) {
+    return SizedBox(
+      height: 22, // consistent with design proportions
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(26, (i) {
+          // smooth sine-based oscillation for natural wave motion
+          final t = DateTime.now().millisecond / 1000;
+          final wave = animate ? 8 + (6 * (1 + (sin((i * 0.5) + (t * 8))))).abs() : (10 + (i % 4) * 2).toDouble();
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            margin: EdgeInsets.symmetric(horizontal: 1.2),
+            width: 3,
+            height: wave,
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.95), borderRadius: BorderRadius.circular(2)),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _waveform1(bool animate) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(20, (i) {
+        final height = animate ? (8 + (DateTime.now().millisecond % (10 + i % 4))).toDouble() : (8 + (i % 5) * 4).toDouble();
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 3,
+          height: height,
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.85), borderRadius: BorderRadius.circular(2)),
+        );
+      }),
     );
   }
 
@@ -699,9 +380,9 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(color: Color(0xFF8B9BFF), shape: BoxShape.circle),
+            width: 10.w,
+            height: 10.h,
+            decoration: BoxDecoration(color: AppColors.secondaryAccent, shape: BoxShape.circle),
             child: const Icon(Icons.mic, color: Colors.white, size: 22),
           ),
           SizedBox(width: 3.w),
@@ -709,15 +390,19 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppStrings.recordingAudio,
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp)),
+                Text(
+                  AppStrings.recordingAudio,
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp),
+                ),
                 SizedBox(height: 0.8.h),
-                _waveform(true),
+                _waveform1(true),
               ],
             ),
           ),
-          Text(_formatTime(_recordSeconds),
-              style: TextStyle(color: Colors.white70, fontSize: 11.sp, fontWeight: FontWeight.w500)),
+          Text(
+            _formatTime(_recordSeconds),
+            style: TextStyle(color: Colors.white70, fontSize: 11.sp, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
@@ -727,41 +412,58 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
   Widget _buildAudioRecorded(OnboardingState state) {
     return Container(
       margin: EdgeInsets.only(bottom: 1.5.h),
-      decoration: BoxDecoration(color: const Color(0xFF151515), borderRadius: BorderRadius.circular(12)),
-      padding: EdgeInsets.all(3.w),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF1A1A1A), Color(0xFF0F0F0F)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.h),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // ✅ Play / Stop Icon Circle
           GestureDetector(
             onTap: () => context.read<OnboardingBloc>().add(PlayAudio()),
             child: Container(
-              width: 44,
-              height: 44,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: state.isPlayingAudio ? Colors.white : const Color(0xFF8B9BFF),
                 shape: BoxShape.circle,
+                gradient: state.isPlayingAudio
+                    ? const LinearGradient(colors: [Color(0xFF999999), Color(0xFFCCCCCC)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+                    : const LinearGradient(colors: [Color(0xFF8B9BFF), Color(0xFF586BFF)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               ),
-              child: Icon(
-                state.isPlayingAudio ? Icons.stop : Icons.play_arrow,
-                color: state.isPlayingAudio ? Colors.black : Colors.white,
-                size: 24,
-              ),
+              child: Icon(state.isPlayingAudio ? Icons.stop_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 24),
             ),
           ),
+
           SizedBox(width: 3.w),
+
+          // ✅ Text + Waveform
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("${AppStrings.audioRecorded} • ${_formatTime(_finalDuration)}",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp)),
-                SizedBox(height: 0.8.h),
+                Row(
+                  children: [
+                    Text(
+                      AppStrings.audioRecorded,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp),
+                    ),
+                    Text(
+                      " .${_formatTime(_finalDuration)}",
+                      style: TextStyle(color: AppColors.neutralGray, fontSize: 10.sp, fontWeight: FontWeight.w600),
+                    ),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: () => context.read<OnboardingBloc>().add(DeleteAudio()),
+                      child: Icon(Icons.delete, color: AppColors.secondaryAccent, size: 20),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 0.7.h),
                 _waveform(false),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: () => context.read<OnboardingBloc>().add(DeleteAudio()),
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
           ),
         ],
       ),
@@ -776,11 +478,15 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
 
     return Container(
       margin: EdgeInsets.only(bottom: 1.5.h),
-      decoration: BoxDecoration(color: const Color(0xFF151515), borderRadius: BorderRadius.circular(12)),
-      padding: EdgeInsets.all(3.w),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceBlack1, // dark card background
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.2.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // ▶ Thumbnail preview
           GestureDetector(
             onTap: () {
               if (_videoPlayerController!.value.isPlaying) {
@@ -790,38 +496,62 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
               }
               setState(() {});
             },
-            child: SizedBox(
-              width: 60,
-              height: 60,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: AspectRatio(
-                  aspectRatio: _videoPlayerController!.value.aspectRatio,
-                  child: VideoPlayer(_videoPlayerController!),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Thumbnail
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: AspectRatio(aspectRatio: _videoPlayerController!.value.aspectRatio, child: VideoPlayer(_videoPlayerController!)),
+                  ),
                 ),
-              ),
+
+                // Play icon overlay
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.black.withOpacity(0.35)),
+                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                ),
+              ],
             ),
           ),
+
           SizedBox(width: 3.w),
+
+          // Title and time
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppStrings.videoRecorded,
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.sp)),
-                SizedBox(height: 0.8.h),
-                Text("${_formatTime(current)} / ${_formatTime(duration)}",
-                    style: TextStyle(color: Colors.white70, fontSize: 10.sp)),
+                Text(
+                  AppStrings.videoRecorded,
+                  style: TextStyle(color: AppColors.text1, fontWeight: FontWeight.w600, fontSize: 11.sp),
+                ),
+                SizedBox(height: 0.3.h),
+                Text(
+                  _formatTime(current),
+                  style: TextStyle(color: AppColors.text2, fontSize: 10.sp, fontWeight: FontWeight.w400),
+                ),
               ],
             ),
           ),
+
+          // 🗑 Delete button
           IconButton(
             onPressed: () {
               context.read<OnboardingBloc>().add(DeleteVideo());
               _videoPlayerController?.dispose();
               _videoPlayerController = null;
             },
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
+            icon: Icon(
+              Icons.delete_outline,
+              color: AppColors.secondaryAccent, // purple accent icon
+              size: 20,
+            ),
           ),
         ],
       ),
