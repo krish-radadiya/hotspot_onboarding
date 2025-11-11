@@ -27,19 +27,19 @@ This project implements the Flutter onboarding questionnaire for Hotspot Hosts.
 2. Run `flutter pub get`
 3. Run on emulator/device
 
+https://github.com/user-attachments/assets/af9cae53-084e-4c17-8987-a8e71d4b70f0
 
 
-https://github.com/user-attachments/assets/dead15d3-5eff-488c-9348-775dd79a5d50
+<img src="https://github.com/user-attachments/assets/baee76e0-632a-4145-8809-d6d50bc8d099" width="250">
+<img src="https://github.com/user-attachments/assets/dc0f4bc8-1199-432c-ba67-e75e244586e1" width="250">
+<img src="https://github.com/user-attachments/assets/8687dd6c-b731-4f79-aa45-15ddf1075c17" width="250">
+<img src="https://github.com/user-attachments/assets/1df44f8e-d5e6-445f-a7ae-1158e1bec6b6" width="250">
+<img src="https://github.com/user-attachments/assets/74f7fc15-90df-4b37-96e7-4fa409e127f8" width="250">
+<img src="https://github.com/user-attachments/assets/88ff8a5d-5793-4021-a852-84cc70c1ed93" width="250">
+<img src="https://github.com/user-attachments/assets/e37828dc-5a1c-4023-a3bb-da29083c1ee8" width="250">
+<img src="https://github.com/user-attachments/assets/fe367631-f033-49a7-98c2-1263c97c96f2" width="250">
 
 
-
-<img src="https://github.com/user-attachments/assets/2b34174b-9124-4d4c-a917-516282d0f12f" width="250">
-<img src="https://github.com/user-attachments/assets/55f7d449-3744-4272-a77f-4ac16e94e902" width="250">
-<img src="https://github.com/user-attachments/assets/e4ef0adc-b910-4aeb-a5c8-a050b4e9d871" width="250">
-<img src="https://github.com/user-attachments/assets/71d426ba-e81c-447d-be02-19c7995599b2" width="250">
-<img src="https://github.com/user-attachments/assets/7502913f-4140-4529-9dfb-eab0a1d6d3f2" width="250">
-<img src="https://github.com/user-attachments/assets/9d171698-620e-4ebc-aeb0-2461137f3a75" width="250">
-<img src="https://github.com/user-attachments/assets/11309fd4-24dc-4b45-b3ac-4f93d8c9e9cb" width="250">
 
 
 
