@@ -30,14 +30,14 @@ This project implements the Flutter onboarding questionnaire for Hotspot Hosts.
 https://github.com/user-attachments/assets/af9cae53-084e-4c17-8987-a8e71d4b70f0
 
 
-<img src="https://github.com/user-attachments/assets/baee76e0-632a-4145-8809-d6d50bc8d099" width="250">
-<img src="https://github.com/user-attachments/assets/dc0f4bc8-1199-432c-ba67-e75e244586e1" width="250">
-<img src="https://github.com/user-attachments/assets/8687dd6c-b731-4f79-aa45-15ddf1075c17" width="250">
-<img src="https://github.com/user-attachments/assets/1df44f8e-d5e6-445f-a7ae-1158e1bec6b6" width="250">
-<img src="https://github.com/user-attachments/assets/74f7fc15-90df-4b37-96e7-4fa409e127f8" width="250">
-<img src="https://github.com/user-attachments/assets/88ff8a5d-5793-4021-a852-84cc70c1ed93" width="250">
-<img src="https://github.com/user-attachments/assets/e37828dc-5a1c-4023-a3bb-da29083c1ee8" width="250">
-<img src="https://github.com/user-attachments/assets/fe367631-f033-49a7-98c2-1263c97c96f2" width="250">
+<img src="https://github.com/user-attachments/assets/0a028fad-6cbc-4b74-8a6c-04c100ab7d22" width="250">
+<img src="https://github.com/user-attachments/assets/b7cfb423-0373-4f77-9672-7c41ea782ea9" width="250">
+<img src="https://github.com/user-attachments/assets/680e2b52-5b00-4ba7-8c93-8ad49d5769a4" width="250">
+<img src="https://github.com/user-attachments/assets/e515c62c-3e9b-4a60-8333-63180c250fc3" width="250">
+<img src="https://github.com/user-attachments/assets/dd5bfcdc-8b70-4fcd-b4f0-15017b3bf7dd" width="250">
+<img src="https://github.com/user-attachments/assets/1014a8ac-3321-4bb8-9369-3e5a933fd741" width="250">
+<img src="https://github.com/user-attachments/assets/a04d3611-f171-4b33-89aa-0eef00e1a6f5" width="250">
+<img src="https://github.com/user-attachments/assets/d832cc51-5131-4002-a8e6-25a8a607df34" width="250">
 
 
 
