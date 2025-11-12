@@ -69,309 +69,260 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: AppColors.base1,
       resizeToAvoidBottomInset: false,
-      body: BlocBuilder<OnboardingBloc, OnboardingState>(
-        builder: (context, state) {
-          // initialize video
-          if (state.hasVideo && state.videoPath != null && _videoPlayerController == null) {
-            _videoPlayerController = VideoPlayerController.file(File(state.videoPath!))..initialize().then((_) => setState(() {}));
-          }
+      body: Stack(
+        children: [
+          // === BACKGROUND IMAGE ===
+          Positioned.fill(child: Image.asset('assets/images/background image.png', fit: BoxFit.cover)),
 
-          // recording timer
-          if (state.isRecordingAudio && _recordTimer == null) {
-            _recordSeconds = 0;
-            _finalDuration = 0;
-            _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() => _recordSeconds++));
-          } else if (!state.isRecordingAudio && _recordTimer != null) {
-            _recordTimer?.cancel();
-            _recordTimer = null;
-            _finalDuration = _recordSeconds;
-          }
+          BlocBuilder<OnboardingBloc, OnboardingState>(
+            builder: (context, state) {
+              if (state.hasVideo && state.videoPath != null && _videoPlayerController == null) {
+                _videoPlayerController = VideoPlayerController.file(File(state.videoPath!))..initialize().then((_) => setState(() {}));
+              }
 
-          final hasMedia = state.hasAudio || state.hasVideo;
+              if (state.isRecordingAudio && _recordTimer == null) {
+                _recordSeconds = 0;
+                _finalDuration = 0;
+                _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() => _recordSeconds++));
+              } else if (!state.isRecordingAudio && _recordTimer != null) {
+                _recordTimer?.cancel();
+                _recordTimer = null;
+                _finalDuration = _recordSeconds;
+              }
 
-          return Stack(
-            children: [
-              // ==== MAIN CONTENT ====
-              SafeArea(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.only(left: 5.w, right: 5.w, bottom: bottomInset + 90),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ==== HEADER ====
-                      Padding(
-                        padding: EdgeInsets.only(top: 1.h, bottom: 2.h),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                                child: CustomPaint(
-                                  painter: WavyProgressPainter(progress: _scrollProgress),
-                                  size: const Size(double.infinity, 8),
+              final hasMedia = state.hasAudio || state.hasVideo;
+
+              return SafeArea(
+                child: Stack(
+                  children: [
+                    // === MAIN SCROLLABLE CONTENT ===
+                    SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(left: 5.w, right: 5.w, bottom: bottomInset + 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 1.h),
+
+                          // === APP BAR CONTAINER ===
+                          Container(
+                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.8.h),
+                            margin: EdgeInsets.only(bottom: 2.h),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                                 ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                    child: CustomPaint(
+                                      painter: WavyProgressPainter(progress: _scrollProgress),
+                                      size: const Size(double.infinity, 8),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // === HEADINGS ===
+                          AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 250),
+                            style: TextStyle(fontSize: _keyboardVisible ? 9.sp : 10.sp, color: Colors.white.withOpacity(0.3)),
+                            child: Text(AppStrings.step02),
+                          ),
+                          SizedBox(height: 0.5.h),
+                          AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 250),
+                            style: _keyboardVisible ? AppTextStyles.bodyRegular : AppTextStyles.bodyMedium,
+                            child: Text(AppStrings.questionWhyHost),
+                          ),
+                          AnimatedOpacity(
+                            opacity: _keyboardVisible ? 1.0 : 1.0,
+                            duration: const Duration(milliseconds: 250),
+                            child: Padding(
+                              padding: EdgeInsets.only(top: 0.6.h),
+                              child: Text(AppStrings.questionIntent, style: AppTextStyles.bodyRegularGrey),
+                            ),
+                          ),
+
+                          SizedBox(height: hasMedia ? 1.h : 3.h),
+
+                          // === TEXT FIELD ===
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12)),
+                            padding: EdgeInsets.symmetric(horizontal: 3.w),
+                            constraints: BoxConstraints(
+                              minHeight: hasMedia ? (_keyboardVisible ? 10.h : 22.h) : (_keyboardVisible ? 12.h : 30.h),
+                              maxHeight: hasMedia ? (_keyboardVisible ? 18.h : 28.h) : (_keyboardVisible ? 22.h : 40.h),
+                            ),
+                            child: TextField(
+                              controller: _controller,
+                              minLines: _keyboardVisible ? 6 : 14,
+                              maxLines: _keyboardVisible ? 6 : 20,
+                              onChanged: (val) => context.read<OnboardingBloc>().add(UpdateTextAnswer(val)),
+                              style: TextStyle(color: Colors.white, fontSize: 11.sp),
+                              decoration: InputDecoration(
+                                hintText: AppStrings.hintStartTyping,
+                                hintStyle: TextStyle(color: Colors.white30, fontSize: 11.sp),
+                                border: InputBorder.none,
                               ),
                             ),
-                            IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.close, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
 
-                      // ==== TEXT HEADINGS ====
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 250),
-                        style: TextStyle(fontSize: _keyboardVisible ? 9.sp : 11.sp, color: Colors.white.withOpacity(0.3)),
-                        child: Text(AppStrings.step02),
-                      ),
-                      SizedBox(height: 0.5.h),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 250),
-                        style: _keyboardVisible ? AppTextStyles.bodyRegular : AppTextStyles.bodyMedium,
-                        child: Text(AppStrings.questionWhyHost),
-                      ),
-                      AnimatedOpacity(
-                        opacity: _keyboardVisible ? 1.0 : 1.0,
-                        duration: const Duration(milliseconds: 250),
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 0.6.h),
-                          child: Text(AppStrings.questionIntent, style: AppTextStyles.bodyRegularGrey),
-                        ),
-                      ),
-                      SizedBox(height: 1.5.h),
+                          SizedBox(height: 1.5.h),
 
-                      // ==== TEXT FIELD ====
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOut,
-                        decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12)),
-                        padding: EdgeInsets.symmetric(horizontal: 3.w),
-                        constraints: BoxConstraints(
-                          minHeight: _keyboardVisible ? 12.h : 30.h, // 📏 slightly taller when closed
-                          maxHeight: _keyboardVisible ? 22.h : 40.h,
-                        ),
-                        child: TextField(
-                          controller: _controller,
-                          minLines: _keyboardVisible ? 6 : 10,
-                          maxLines: _keyboardVisible ? 6 : 20,
-                          onChanged: (val) => context.read<OnboardingBloc>().add(UpdateTextAnswer(val)),
-                          style: TextStyle(color: Colors.white, fontSize: 11.sp),
-                          decoration: InputDecoration(
-                            hintText: AppStrings.hintStartTyping,
-                            hintStyle: TextStyle(color: Colors.white30, fontSize: 11.sp),
-                            border: InputBorder.none,
+                          // === RECORDED SECTIONS ===
+                          if (state.isRecordingAudio) _buildAudioRecording(),
+                          if (!state.isRecordingAudio && state.hasAudio && state.audioPath != null) _buildAudioRecorded(state),
+                          if (state.hasVideo && _videoPlayerController != null && _videoPlayerController!.value.isInitialized) _buildVideoRecorded(),
+                        ],
+                      ),
+                    ),
+
+                    // === FIXED BOTTOM BAR ===
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: _keyboardVisible ? bottomInset : 0.h,
+                      child: Container(
+                        color: AppColors.base1.withOpacity(0.9),
+                        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.8.h),
+                        child: SafeArea(
+                          top: false,
+                          child: Builder(
+                            builder: (context) {
+                              final hasMedia = state.hasAudio || state.hasVideo;
+
+                              if (hasMedia) {
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  width: double.infinity,
+                                  height: 6.5.h,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF222222), Color(0xFF999999), Color(0xFF222222)],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                  ),
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    onPressed: () {},
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          AppStrings.next,
+                                          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: Colors.white),
+                                        ),
+                                        SizedBox(width: 2.w),
+                                        Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: Colors.white),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (state.isRecordingAudio) {
+                                        context.read<OnboardingBloc>().add(StopAudioRecording());
+                                      } else {
+                                        context.read<OnboardingBloc>().add(StartAudioRecording());
+                                      }
+                                    },
+                                    child: Container(
+                                      width: 14.w,
+                                      height: 6.h,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: AppColors.surfaceWhite1.withOpacity(0.15),
+                                      ),
+                                      child: Icon(state.isRecordingAudio ? Icons.stop : Icons.mic_none, color: Colors.white),
+                                    ),
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  GestureDetector(
+                                    onTap: () => context.read<OnboardingBloc>().add(StartVideoRecording()),
+                                    child: Container(
+                                      width: 14.w,
+                                      height: 6.h,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: AppColors.surfaceWhite1.withOpacity(0.15),
+                                      ),
+                                      child: const Icon(Icons.videocam_outlined, color: Colors.white),
+                                    ),
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  Expanded(
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      height: 6.2.h,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: AppColors.surfaceWhite1.withOpacity(0.15),
+                                      ),
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.transparent,
+                                          shadowColor: Colors.transparent,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        ),
+                                        onPressed: null,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              AppStrings.next,
+                                              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: Colors.white38),
+                                            ),
+                                            SizedBox(width: 2.w),
+                                            Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: Colors.white38),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       ),
-                      SizedBox(height: 1.5.h),
-
-                      // ==== AUDIO / VIDEO UI ====
-                      if (state.isRecordingAudio) _buildAudioRecording(),
-                      if (!state.isRecordingAudio && state.hasAudio && state.audioPath != null) _buildAudioRecorded(state),
-                      if (state.hasVideo && _videoPlayerController != null && _videoPlayerController!.value.isInitialized) _buildVideoRecorded(),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ==== FIXED BOTTOM BAR ====
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: _keyboardVisible ? bottomInset : 0.h,
-                child: Container(
-                  color: AppColors.base1.withOpacity(0.85),
-                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.6.h),
-                  child: SafeArea(
-                    top: false,
-                    child: Builder(
-                      builder: (context) {
-                        final hasMedia = state.hasAudio || state.hasVideo; // ✅ Check if audio/video recorded
-
-                        // ===== SHOW ONLY NEXT BUTTON WHEN MEDIA EXISTS =====
-                        if (hasMedia) {
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: double.infinity,
-                            height: 6.5.h,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: const LinearGradient(
-                                colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                            ),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: () {
-                                // NEXT ACTION HERE
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    AppStrings.next,
-                                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColors.text1.withOpacity(0.9)),
-                                  ),
-                                  SizedBox(width: 2.w),
-                                  Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: AppColors.text1.withOpacity(0.9)),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-
-                        // ===== DEFAULT: AUDIO + VIDEO + NEXT BUTTON =====
-                        return Row(
-                          children: [
-                            // 🎙 AUDIO BUTTON
-                            GestureDetector(
-                              onTap: () {
-                                if (state.isRecordingAudio) {
-                                  context.read<OnboardingBloc>().add(StopAudioRecording());
-                                } else {
-                                  context.read<OnboardingBloc>().add(StartAudioRecording());
-                                }
-                              },
-                              child: Container(
-                                width: 14.w,
-                                height: 6.h,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  gradient: state.isRecordingAudio
-                                      ? const LinearGradient(
-                                          colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                        )
-                                      : null,
-                                  color: state.isRecordingAudio ? null : AppColors.neutralDark,
-                                ),
-                                child: Icon(state.isRecordingAudio ? Icons.stop : Icons.mic_none, color: AppColors.text1.withOpacity(0.9)),
-                              ),
-                            ),
-
-                            SizedBox(width: 3.w),
-
-                            // 🎥 VIDEO BUTTON
-                            GestureDetector(
-                              onTap: () => context.read<OnboardingBloc>().add(StartVideoRecording()),
-                              child: Container(
-                                width: 14.w,
-                                height: 6.h,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  gradient: state.hasVideo
-                                      ? const LinearGradient(
-                                          colors: [AppColors.neutralLight, AppColors.neutralGray, AppColors.neutralLight],
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                        )
-                                      : null,
-                                  color: state.hasVideo ? null : AppColors.neutralDark,
-                                ),
-                                child: const Icon(Icons.videocam_outlined, color: AppColors.text1),
-                              ),
-                            ),
-
-                            SizedBox(width: 3.w),
-
-                            // 🟣 NEXT BUTTON (inactive initially)
-                            Expanded(
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                height: 6.2.h,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: AppColors.neutralDark.withOpacity(0.8)),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: null, // inactive until media recorded
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        AppStrings.next,
-                                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColors.text1.withOpacity(0.4)),
-                                      ),
-                                      SizedBox(width: 2.w),
-                                      Image.asset('assets/icon/next_icon.png', height: 16, width: 16, color: AppColors.text1.withOpacity(0.4)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
                     ),
-                  ),
+                  ],
                 ),
-              ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  // ==== WAVEFORM ====
-  Widget _waveform(bool animate) {
-    return SizedBox(
-      height: 22, // consistent with design proportions
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(26, (i) {
-          // smooth sine-based oscillation for natural wave motion
-          final t = DateTime.now().millisecond / 1000;
-          final wave = animate ? 8 + (6 * (1 + (sin((i * 0.5) + (t * 8))))).abs() : (10 + (i % 4) * 2).toDouble();
-
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            margin: EdgeInsets.symmetric(horizontal: 1.2),
-            width: 3,
-            height: wave,
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.95), borderRadius: BorderRadius.circular(2)),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _waveform1(bool animate) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(20, (i) {
-        final height = animate ? (8 + (DateTime.now().millisecond % (10 + i % 4))).toDouble() : (8 + (i % 5) * 4).toDouble();
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 3,
-          height: height,
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.85), borderRadius: BorderRadius.circular(2)),
-        );
-      }),
-    );
-  }
-
-  // ==== AUDIO RECORDING ====
+  // ===== AUDIO RECORDING WIDGET =====
   Widget _buildAudioRecording() {
     return Container(
       margin: EdgeInsets.only(bottom: 1.5.h),
@@ -408,7 +359,7 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
     );
   }
 
-  // ==== AUDIO RECORDED ====
+  // ===== AUDIO RECORDED WIDGET =====
   Widget _buildAudioRecorded(OnboardingState state) {
     return Container(
       margin: EdgeInsets.only(bottom: 1.5.h),
@@ -435,9 +386,7 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
               child: Icon(state.isPlayingAudio ? Icons.stop_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 24),
             ),
           ),
-
           SizedBox(width: 3.w),
-
           // ✅ Text + Waveform
           Expanded(
             child: Column(
@@ -470,23 +419,35 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
     );
   }
 
-  // ==== VIDEO RECORDED ====
+  // ===== VIDEO RECORDED WIDGET =====
   Widget _buildVideoRecorded() {
-    final duration = _videoPlayerController!.value.duration.inSeconds;
-    final position = _videoPlayerController!.value.position.inSeconds;
-    final current = position > duration ? duration : position;
+    if (_videoPlayerController == null ||
+        !_videoPlayerController!.value.isInitialized) {
+      return const SizedBox(); // avoid rendering until ready
+    }
+
+    // Safely get values
+    final videoValue = _videoPlayerController!.value;
+    final totalDuration = videoValue.duration.inSeconds;
+    final currentPosition = videoValue.position.inSeconds;
+
+    // handle duration = 0 (metadata not yet loaded)
+    final int duration =
+    (totalDuration == 0 && videoValue.isInitialized) ? (videoValue.duration.inMilliseconds ~/ 1000) : totalDuration;
+    final int current =
+    currentPosition > duration ? duration : currentPosition;
 
     return Container(
       margin: EdgeInsets.only(bottom: 1.5.h),
       decoration: BoxDecoration(
-        color: AppColors.surfaceBlack1, // dark card background
+        color: const Color(0xFF151515),
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.2.h),
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // ▶ Thumbnail preview
+          // === THUMBNAIL ===
           GestureDetector(
             onTap: () {
               if (_videoPlayerController!.value.isPlaying) {
@@ -499,22 +460,31 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Thumbnail
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: AspectRatio(aspectRatio: _videoPlayerController!.value.aspectRatio, child: VideoPlayer(_videoPlayerController!)),
+                    width: 56,
+                    height: 56,
+                    child: AspectRatio(
+                      aspectRatio: videoValue.aspectRatio,
+                      child: VideoPlayer(_videoPlayerController!),
+                    ),
                   ),
                 ),
-
-                // Play icon overlay
                 Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.black.withOpacity(0.35)),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.black.withOpacity(0.35),
+                  ),
+                ),
+                Icon(
+                  _videoPlayerController!.value.isPlaying
+                      ? Icons.pause_rounded
+                      : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 26,
                 ),
               ],
             ),
@@ -522,39 +492,87 @@ class _OnboardingQuestionScreenState extends State<OnboardingQuestionScreen> {
 
           SizedBox(width: 3.w),
 
-          // Title and time
+          // === TEXT + TIMER + DELETE ===
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  AppStrings.videoRecorded,
-                  style: TextStyle(color: AppColors.text1, fontWeight: FontWeight.w600, fontSize: 11.sp),
+                Expanded(
+                  child: Text(
+                    "${AppStrings.videoRecorded} • ${_formatTime(current)}",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11.sp,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                SizedBox(height: 0.3.h),
-                Text(
-                  _formatTime(current),
-                  style: TextStyle(color: AppColors.text2, fontSize: 10.sp, fontWeight: FontWeight.w400),
+                GestureDetector(
+                  onTap: () {
+                    context.read<OnboardingBloc>().add(DeleteVideo());
+                    _videoPlayerController?.dispose();
+                    _videoPlayerController = null;
+                  },
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: Color(0xFF8B9BFF),
+                    size: 20,
+                  ),
                 ),
               ],
             ),
           ),
-
-          // 🗑 Delete button
-          IconButton(
-            onPressed: () {
-              context.read<OnboardingBloc>().add(DeleteVideo());
-              _videoPlayerController?.dispose();
-              _videoPlayerController = null;
-            },
-            icon: Icon(
-              Icons.delete_outline,
-              color: AppColors.secondaryAccent, // purple accent icon
-              size: 20,
-            ),
-          ),
         ],
       ),
+    );
+  }
+
+  // ===== WAVEFORM WIDGET =====
+  Widget _waveform(bool animate) {
+    return SizedBox(
+      height: 24, // Height of waveform container
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(26, (i) {
+          // Smooth sine-based animation for recording
+          final t = DateTime.now().millisecond / 1000;
+          final double height = animate
+              ? (8 + 6 * (1 + sin((i * 0.5) + (t * 8))))
+                    .toDouble() // 🔹 animated recording
+              : (10 + (i % 5) * 3).toDouble(); // 🔹 static waveform
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            margin: const EdgeInsets.symmetric(horizontal: 1.2),
+            width: 3,
+            height: height,
+            // ✅ now a double
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                colors: [Colors.white.withOpacity(0.9), Colors.white.withOpacity(0.7)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _waveform1(bool animate) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(20, (i) {
+        final height = animate ? (8 + (DateTime.now().millisecond % (10 + i % 4))).toDouble() : (8 + (i % 5) * 4).toDouble();
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 3,
+          height: height,
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.85), borderRadius: BorderRadius.circular(2)),
+        );
+      }),
     );
   }
 }
